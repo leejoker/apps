@@ -1,0 +1,4 @@
+downloadPath:                   #the real path of the files
+host:                           #your host
+uri: /file/                     #your uri in nginx or apache
+protocol: http
