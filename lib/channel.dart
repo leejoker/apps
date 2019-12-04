@@ -20,7 +20,6 @@ class AppdownloaderChannel extends ApplicationChannel {
       return Response.ok("Leejoker's AppDownloader");
     });
     router.route("/down/[:url]").link(() => DownloadController(config));
-
     return router;
   }
 }

@@ -34,18 +34,24 @@ class DownloadController extends ResourceController {
 
   @Operation.get("url")
   Future<Response> getSoftDownloadUrl(@Bind.path("url") String url) async {
-    final uri = Uri.parse(url);
+    var decodeUrl = String.fromCharCodes(base64Decode(url));
+    decodeUrl = Uri.decodeComponent(decodeUrl);
+    final uri = Uri.parse(decodeUrl);
     //download files by url
     String filename;
-    await HttpClient()
-        .getUrl(uri)
-        .then((HttpClientRequest request) => request.close())
-        .then((HttpClientResponse response) {
-      final cd = response.headers.value("Content-Disposition");
-      filename = cd.contains("filename") ? cd.split("=")[1] : "";
-      response.pipe(
-          File(config.downloadPath + path.separator + filename).openWrite());
-    });
+    try {
+      await HttpClient()
+          .getUrl(uri)
+          .then((HttpClientRequest request) => request.close())
+          .then((HttpClientResponse response) {
+        final cd = response.headers.value("Content-Disposition");
+        filename = cd.contains("filename") ? cd.split("=")[1] : "";
+        response.pipe(
+            File(config.downloadPath + path.separator + filename).openWrite());
+      });
+    } catch (e) {
+      print(e);
+    }
     final u = getUrlByFilename(File(filename), config);
     return Response.ok("""<a href='${u}'>${filename}</a>""");
   }
