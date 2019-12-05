@@ -41,6 +41,7 @@ class DownloadController extends ResourceController {
     //download files by url
     String filename;
     double progress = 0.0;
+    double finalProgress = 0.0;
     try {
       final _client = http.Client();
       final req = http.Request('get', uri);
@@ -52,7 +53,10 @@ class DownloadController extends ResourceController {
         final curLen = ds.length;
         final totalLen = r.contentLength;
         progress = curLen * 100 / totalLen;
-        print("current progress: ${progress.toStringAsFixed(2)}%");
+        if(progress - finalProgress > 1){
+          print("current progress: ${progress.toStringAsFixed(2)}%");
+          finalProgress = progress;
+        }
       }, onDone: () {
         final cd = r.headers["Content-Disposition"];
         if (cd != null) {
