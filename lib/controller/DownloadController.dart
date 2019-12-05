@@ -42,6 +42,7 @@ class DownloadController extends ResourceController {
     String filename;
     double progress = 0.0;
     try {
+      //TODO 增加多线程下载的处理
       final _client = http.Client();
       final req = http.Request('get', uri);
       http.StreamedResponse r = await _client.send(req);
