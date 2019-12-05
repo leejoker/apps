@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:appdownloader/appdownloader.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 class DownloadController extends ResourceController {
@@ -39,20 +40,34 @@ class DownloadController extends ResourceController {
     final uri = Uri.parse(decodeUrl);
     //download files by url
     String filename;
+    double progress = 0.0;
     try {
-      await HttpClient()
-          .getUrl(uri)
-          .then((HttpClientRequest request) => request.close())
-          .then((HttpClientResponse response) {
-        final cd = response.headers.value("Content-Disposition");
-        filename = cd.contains("filename") ? cd.split("=")[1] : "";
-        response.pipe(
-            File(config.downloadPath + path.separator + filename).openWrite());
+      final _client = http.Client();
+      final req = http.Request('get', uri);
+      http.StreamedResponse r = await _client.send(req);
+      print(r.statusCode);
+      final ds = <int>[];
+      r.stream.listen((List<int> d) {
+        ds.addAll(d);
+        final curLen = ds.length;
+        final totalLen = r.contentLength;
+        progress = curLen * 100 / totalLen;
+        print("current progress: ${progress.toStringAsFixed(2)}%");
+      }, onDone: () {
+        final cd = r.headers["Content-Disposition"];
+        if (cd != null) {
+          filename = cd.contains("filename") ? cd.split("=")[1] : "";
+        } else {
+          filename =
+              uri.toString().substring(uri.toString().lastIndexOf("/") + 1);
+        }
+        File(config.downloadPath + path.separator + filename).writeAsBytes(ds);
+        _client?.close();
       });
     } catch (e) {
       print(e);
     }
-    final u = getUrlByFilename(File(filename), config);
-    return Response.ok("""<a href='${u}'>${filename}</a>""");
+
+    return Response.ok("please check the list");
   }
 }
