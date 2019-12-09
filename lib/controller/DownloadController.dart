@@ -48,6 +48,7 @@ class DownloadController extends ResourceController {
       final req = http.Request('get', uri);
       final http.StreamedResponse r = await _client.send(req);
       print(r.statusCode);
+      double curLen;
       final ds = <int>[];
       final cd = r.headers["Content-Disposition"];
       if (cd != null) {
@@ -58,7 +59,7 @@ class DownloadController extends ResourceController {
       }
       r.stream.listen((List<int> d) {
         ds.addAll(d);
-        final curLen = ds.length;
+        curLen += ds.length;
         final totalLen = r.contentLength;
         progress = curLen * 100 / totalLen;
         File(config.downloadPath + path.separator + filename)
