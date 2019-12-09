@@ -64,10 +64,8 @@ class DownloadController extends ResourceController {
         ds.addAll(d);
         curLen += ds.length;
         progress = curLen * 100 / totalLen;
-        final file = File(config.downloadPath + path.separator + filename);
-        file.existsSync()
-            ? file.writeAsBytes(ds, mode: FileMode.append, flush: true)
-            : file.writeAsBytes(ds, mode: FileMode.write, flush: true);
+        File(config.downloadPath + path.separator + filename)
+            .writeAsBytesSync(ds, mode: FileMode.append, flush: true);
         print("current progress: ${progress.toStringAsFixed(2)}%");
         ds.clear();
       }, onDone: () {
