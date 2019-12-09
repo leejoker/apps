@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:appdownloader/appdownloader.dart';
 import 'package:http/http.dart' as http;
@@ -45,24 +46,26 @@ class DownloadController extends ResourceController {
       //TODO 增加多线程下载的处理
       final _client = http.Client();
       final req = http.Request('get', uri);
-      http.StreamedResponse r = await _client.send(req);
+      final http.StreamedResponse r = await _client.send(req);
       print(r.statusCode);
       final ds = <int>[];
+      final cd = r.headers["Content-Disposition"];
+      if (cd != null) {
+        filename = cd.contains("filename") ? cd.split("=")[1] : "";
+      } else {
+        filename =
+            uri.toString().substring(uri.toString().lastIndexOf("/") + 1);
+      }
       r.stream.listen((List<int> d) {
         ds.addAll(d);
         final curLen = ds.length;
         final totalLen = r.contentLength;
         progress = curLen * 100 / totalLen;
+        File(config.downloadPath + path.separator + filename)
+            .writeAsBytes(ds, mode: FileMode.append, flush: true);
         print("current progress: ${progress.toStringAsFixed(2)}%");
       }, onDone: () {
-        final cd = r.headers["Content-Disposition"];
-        if (cd != null) {
-          filename = cd.contains("filename") ? cd.split("=")[1] : "";
-        } else {
-          filename =
-              uri.toString().substring(uri.toString().lastIndexOf("/") + 1);
-        }
-        File(config.downloadPath + path.separator + filename).writeAsBytes(ds);
+        print("download file over!");
         _client?.close();
       });
     } catch (e) {
