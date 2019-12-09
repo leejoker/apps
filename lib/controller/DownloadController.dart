@@ -59,13 +59,18 @@ class DownloadController extends ResourceController {
         filename =
             uri.toString().substring(uri.toString().lastIndexOf("/") + 1);
       }
+      final file = File(config.downloadPath + path.separator + filename);
+      if (curLen == 0.0 && file.existsSync()) {
+        file.deleteSync();
+        print("exists file deleted");
+      }
       //开始监听下载
+      print("begin download");
       r.stream.listen((List<int> d) {
         ds.addAll(d);
         curLen += ds.length;
         progress = curLen * 100 / totalLen;
-        File(config.downloadPath + path.separator + filename)
-            .writeAsBytesSync(ds, mode: FileMode.append, flush: true);
+        file.writeAsBytesSync(ds, mode: FileMode.append, flush: true);
         print("current progress: ${progress.toStringAsFixed(2)}%");
         ds.clear();
       }, onDone: () {
