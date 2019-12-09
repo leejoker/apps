@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:appdownloader/appdownloader.dart';
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -61,8 +62,8 @@ class DownloadController extends ResourceController {
       }
       final file = File(config.downloadPath + path.separator + filename);
       if (curLen == 0.0 && file.existsSync()) {
-        file.deleteSync();
-        print("exists file deleted");
+        return Response.ok(
+            "file exists,file md5: ${md5.convert(file.readAsBytesSync()).toString()}");
       }
       //开始监听下载
       print("begin download");
@@ -80,7 +81,6 @@ class DownloadController extends ResourceController {
     } catch (e) {
       print(e);
     }
-
     return Response.ok("please check the list");
   }
 }
