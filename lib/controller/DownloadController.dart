@@ -48,8 +48,10 @@ class DownloadController extends ResourceController {
       final req = http.Request('get', uri);
       final http.StreamedResponse r = await _client.send(req);
       print(r.statusCode);
-      double curLen;
-      final ds = <int>[];
+      //设置下载相关参数
+      double curLen = 0.0;
+      final totalLen = r.contentLength;
+      final ds = <int>[1024 * 1024 * 3];
       final cd = r.headers["Content-Disposition"];
       if (cd != null) {
         filename = cd.contains("filename") ? cd.split("=")[1] : "";
@@ -57,10 +59,10 @@ class DownloadController extends ResourceController {
         filename =
             uri.toString().substring(uri.toString().lastIndexOf("/") + 1);
       }
+      //开始监听下载
       r.stream.listen((List<int> d) {
         ds.addAll(d);
         curLen += ds.length;
-        final totalLen = r.contentLength;
         progress = curLen * 100 / totalLen;
         File(config.downloadPath + path.separator + filename)
             .writeAsBytes(ds, mode: FileMode.append, flush: true);
