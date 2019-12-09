@@ -64,6 +64,7 @@ class DownloadController extends ResourceController {
         File(config.downloadPath + path.separator + filename)
             .writeAsBytes(ds, mode: FileMode.append, flush: true);
         print("current progress: ${progress.toStringAsFixed(2)}%");
+        ds.clear();
       }, onDone: () {
         print("download file over!");
         _client?.close();
