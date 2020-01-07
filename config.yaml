@@ -1,4 +1,10 @@
-downloadPath:                   #the real path of the files
-host:                           #your host
-uri: /file/                     #your uri in nginx or apache
+downloadPath: /downloads/             #the real path of the files
+host: 127.0.0.1                       #your host
+uri: /file/                           #your uri in nginx or apache
 protocol: http
+hacpai:
+  loginUrl:  https://hacpai.com/login
+  checkinUrl:  https://hacpai.com/activity/daily-checkin
+  ylrUrl: https://hacpai.com/activity/yesterday-liveness-reward
+  username:                           #your hacpai username
+  password:                           #your hacpai password base64

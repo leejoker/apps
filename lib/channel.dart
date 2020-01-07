@@ -1,4 +1,5 @@
 import 'package:appdownloader/controller/DownloadController.dart';
+import 'package:appdownloader/controller/HacpaiController.dart';
 
 import 'appdownloader.dart';
 
@@ -19,7 +20,8 @@ class AppdownloaderChannel extends ApplicationChannel {
     router.route("/").linkFunction((request) async {
       return Response.ok("Leejoker's AppDownloader");
     });
-    router.route("/down/[:url]").link(() => DownloadController(config));
+    router.route("/files/[:url]").link(() => DownloadController(config));
+    router.route("/hacpai/checkin").link(() => HacpaiController(config));
     return router;
   }
 }
@@ -30,4 +32,13 @@ class Config extends Configuration {
   String host;
   String uri;
   String protocol;
+  HacPai hacpai;
+}
+
+class HacPai extends Configuration {
+  String username;
+  String password;
+  String loginUrl;
+  String checkinUrl;
+  String ylrUrl;
 }
