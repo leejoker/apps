@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:appdownloader/appdownloader.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:crypto/crypto.dart';
-import 'package:html/parser.dart' show parse;
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart' hide Response;
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:html/parser.dart';
 
 class HacpaiController extends ResourceController {
   HacpaiController(this.config);
@@ -12,6 +14,9 @@ class HacpaiController extends ResourceController {
 
   Map map = {};
 
+  final Dio dio = Dio();
+  final CookieJar cookieJar = CookieJar();
+
   void _getAllProps() {
     map["loginUrl"] = config.hacpai.loginUrl;
     map["checkinUrl"] = config.hacpai.checkinUrl;
@@ -19,7 +24,14 @@ class HacpaiController extends ResourceController {
     map["username"] = config.hacpai.username;
     map["password"] =
         md5.convert(base64Decode(config.hacpai.password)).toString();
+    map["Referer"] = config.hacpai.checkinRefUrl;
   }
+
+  final Map<String, String> loginHeader = {
+    "User-Agent":
+        "Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
+    "Content-Type": "application/json"
+  };
 
   Future<String> _login() async {
     String result;
@@ -29,26 +41,14 @@ class HacpaiController extends ResourceController {
       "userPassword": "${map["password"]}",
       "captcha": ""
     };
-    final header = {
-      "User-Agent":
-          "Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
-      "Content-Type": "application/json"
-    };
+
+    dio.interceptors.add(CookieManager(cookieJar));
+    final Options options = Options(headers: loginHeader);
     try {
-      result = await http
-          .post(map["loginUrl"],
-              headers: header,
-              body: jsonEncode(data),
-              encoding: Encoding.getByName("UTF-8"))
-          .then((response) {
-        print("响应状态： ${response.statusCode}");
-        print("响应正文： ${response.body}");
-        print("响应Headers： ${response.headers}");
-        final responseMap = {};
-        responseMap["body"] = response.body;
-        responseMap["header"] = response.headers;
-        return jsonEncode(responseMap);
-      });
+      result = (await dio.post(map["loginUrl"].toString(),
+              data: data, options: options))
+          .data
+          .toString();
     } catch (e) {
       print(e);
     }
@@ -58,39 +58,35 @@ class HacpaiController extends ResourceController {
   @Operation.get()
   Future<Response> checkIn() async {
     String result;
-    String checkinUrl = "";
-    final String loginJson = await _login();
-    final loginResult = jsonDecode(loginJson);
-    final headers = loginResult["header"];
-    print("LoginCookie: ${headers["set-cookie"]}");
-    final header = {
+    result = await _login();
+    print("login result: ${result}");
+
+    final checkinHeader = {
       "User-Agent":
           "Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
-      "Cookie": headers["set-cookie"].toString()
+      "Referer": map["Referer"]
     };
+
+    final Options options = Options(headers: checkinHeader);
     try {
-      result =
-          await http.get(map["checkinUrl"], headers: header).then((response) {
-        print("响应状态： ${response.statusCode}");
-        //变更cookie信息
-        header["Cookie"] = response.headers["set-cookie"];
-        print("CheckinCookie: ${header["Cookie"]}");
-        return response.body;
-      });
+      result = (await dio.get(map["checkinUrl"].toString(), options: options))
+          .data
+          .toString();
+      print("checkin result: ${result}");
+
       //处理html页面
       var document = parse(result);
       var aDom = document.querySelector("a[class='btn green']");
-      print("DailyCheckinCookie: ${header["Cookie"]}");
       if (aDom != null) {
-        checkinUrl = aDom.attributes["href"];
-        result = await http.get(checkinUrl, headers: header).then((response) {
-          print("响应状态： ${response.statusCode}");
-          return response.body;
-        });
+        print("daily-chein url : ${aDom.attributes["href"]}");
+        result = (await dio.get(aDom.attributes["href"], options: options))
+            .data
+            .toString();
       }
+      print("daily-checkin result: ${result}");
       document = parse(result);
       aDom = document.querySelector("a[class='btn']");
-      result = aDom.innerHtml;
+      result = aDom?.innerHtml;
     } catch (e) {
       print(e);
     }

@@ -40,5 +40,6 @@ class HacPai extends Configuration {
   String password;
   String loginUrl;
   String checkinUrl;
+  String checkinRefUrl;
   String ylrUrl;
 }
