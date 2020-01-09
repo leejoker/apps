@@ -17,63 +17,46 @@ class HacpaiController extends ResourceController {
   final Dio dio = Dio();
   final CookieJar cookieJar = CookieJar();
 
-  void _getAllProps() {
-    map["loginUrl"] = config.hacpai.loginUrl;
-    map["checkinUrl"] = config.hacpai.checkinUrl;
-    map["ylrUrl"] = config.hacpai.ylrUrl;
-    map["username"] = config.hacpai.username;
-    map["password"] =
-        md5.convert(base64Decode(config.hacpai.password)).toString();
-    map["Referer"] = config.hacpai.checkinRefUrl;
-  }
-
   final Map<String, String> loginHeader = {
     "User-Agent":
         "Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
     "Content-Type": "application/json"
   };
 
-  Future<String> _login() async {
+  final Map<String, String> checkInHeader = {
+    "User-Agent":
+        "Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
+    "Referer": "https://hacpai.com/activity/checkin"
+  };
+
+  Future<String> _login(username, password) async {
     String result;
-    _getAllProps();
     final data = {
-      "nameOrEmail": "${map["username"]}",
-      "userPassword": "${map["password"]}",
+      "nameOrEmail": "${username}",
+      "userPassword": "${password}",
       "captcha": ""
     };
 
     dio.interceptors.add(CookieManager(cookieJar));
     final Options options = Options(headers: loginHeader);
     try {
-      result = (await dio.post(map["loginUrl"].toString(),
-              data: data, options: options))
-          .data
-          .toString();
+      result =
+          (await dio.post(config.hacpai.loginUrl, data: data, options: options))
+              .data
+              .toString();
     } catch (e) {
       print(e);
     }
     return result;
   }
 
-  @Operation.get()
-  Future<Response> checkIn() async {
+  Future<String> _checkIn() async {
     String result;
-    result = await _login();
-    print("login result: ${result}");
-
-    final checkinHeader = {
-      "User-Agent":
-          "Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko",
-      "Referer": map["Referer"]
-    };
-
-    final Options options = Options(headers: checkinHeader);
+    final Options options = Options(headers: checkInHeader);
     try {
-      result = (await dio.get(map["checkinUrl"].toString(), options: options))
+      result = (await dio.get(config.hacpai.checkinUrl, options: options))
           .data
           .toString();
-      print("checkin result: ${result}");
-
       //处理html页面
       var document = parse(result);
       var aDom = document.querySelector("a[class='btn green']");
@@ -83,13 +66,33 @@ class HacpaiController extends ResourceController {
             .data
             .toString();
       }
-      print("daily-checkin result: ${result}");
       document = parse(result);
       aDom = document.querySelector("a[class='btn']");
       result = aDom?.innerHtml;
     } catch (e) {
       print(e);
     }
-    return Response.ok(result);
+    return result;
+  }
+
+  @Operation.get()
+  Future<Response> checkInBatch() async {
+    final jsonStr = File("${config.hacpai.jsonFile}").readAsStringSync();
+    final map = json.decode(jsonStr);
+    final List userList = map["accounts"] as List;
+    final resultMap = {};
+    for (var user in userList) {
+      final username = user["username"];
+      final password =
+          md5.convert(base64Decode(user["password"].toString())).toString();
+      var result = await _login(username, password);
+      //输出登录状态
+      print(result);
+      result = await _checkIn();
+      //输出签到状态
+      print(result);
+      resultMap[username] = result;
+    }
+    return Response.ok(jsonEncode(resultMap));
   }
 }

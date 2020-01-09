@@ -7,5 +7,4 @@ hacpai:
   checkinRefUrl:  https://hacpai.com/activity/checkin
   checkinUrl:  https://hacpai.com/activity/daily-checkin
   ylrUrl: https://hacpai.com/activity/yesterday-liveness-reward
-  username: username                  #hacpai username
-  password: cGFzc3dvcmQ=              #hacpai password base64
+  jsonFile: lib/resources/json/checkin.json

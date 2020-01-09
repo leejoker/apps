@@ -1,0 +1,8 @@
+{
+  "accounts": [
+    {
+      "username": "you username",
+      "password": "your password base64"
+    }
+  ]
+}
