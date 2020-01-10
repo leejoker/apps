@@ -1,6 +1,6 @@
 /// appdownloader
 
-library appdownloader;
+library apps;
 
 export 'dart:async';
 export 'dart:io';

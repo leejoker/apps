@@ -1,4 +1,4 @@
-import 'package:appdownloader/appdownloader.dart';
+import 'package:apps/apps.dart';
 
 Future main() async {
   final app = Application<AppdownloaderChannel>()

@@ -1,7 +1,7 @@
-import 'package:appdownloader/controller/DownloadController.dart';
-import 'package:appdownloader/controller/HacpaiController.dart';
+import 'package:apps/controller/DownloadController.dart';
+import 'package:apps/controller/HacpaiController.dart';
 
-import 'appdownloader.dart';
+import 'apps.dart';
 
 class AppdownloaderChannel extends ApplicationChannel {
   Config config;

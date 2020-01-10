@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:appdownloader/appdownloader.dart';
+import 'package:apps/apps.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart' hide Response;
