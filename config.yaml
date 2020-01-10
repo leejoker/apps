@@ -4,6 +4,7 @@ uri: /file/                           #your uri in nginx or apache
 protocol: http
 hacpai:
   loginUrl:  https://hacpai.com/login
+  logoutUrl:  https://hacpai.com/logout
   checkinRefUrl:  https://hacpai.com/activity/checkin
   checkinUrl:  https://hacpai.com/activity/daily-checkin
   ylrUrl: https://hacpai.com/activity/yesterday-liveness-reward

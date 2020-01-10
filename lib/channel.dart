@@ -37,6 +37,7 @@ class Config extends Configuration {
 
 class HacPai extends Configuration {
   String loginUrl;
+  String logoutUrl;
   String checkinUrl;
   String checkinRefUrl;
   String ylrUrl;

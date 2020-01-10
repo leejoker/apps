@@ -11,7 +11,7 @@ json = JSON.parse(res.body)
 json = JSON.parse(json)
 
 # 保存签到日志
-File.open("/home/ubuntu/hacpai_chein.log", "a+") do |file|
+File.open("#{ENV['HOME']}/hacpai_chein.log", "a+") do |file|
   if (file.readlines.length != 0)
     file.puts "########################################"
   end
