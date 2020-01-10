@@ -1,10 +1,10 @@
-import 'package:appdownloader/appdownloader.dart';
+import 'package:apps/apps.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 
-export 'package:appdownloader/appdownloader.dart';
+export 'package:apps/apps.dart';
+export 'package:aqueduct/aqueduct.dart';
 export 'package:aqueduct_test/aqueduct_test.dart';
 export 'package:test/test.dart';
-export 'package:aqueduct/aqueduct.dart';
 
 /// A testing harness for appdownloader.
 ///
@@ -21,12 +21,8 @@ export 'package:aqueduct/aqueduct.dart';
 ///
 class Harness extends TestHarness<AppdownloaderChannel> {
   @override
-  Future onSetUp() async {
-
-  }
+  Future onSetUp() async {}
 
   @override
-  Future onTearDown() async {
-
-  }
+  Future onTearDown() async {}
 }
