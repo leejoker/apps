@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:apps/apps.dart';
-import 'package:crypto/crypto.dart';
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+import 'package:dio/dio.dart' as dio;
+import 'package:dio_range_download/dio_range_download.dart';
 
 class DownloadController extends ResourceController {
   DownloadController(this.config);
@@ -41,43 +41,33 @@ class DownloadController extends ResourceController {
     decodeUrl = Uri.decodeComponent(decodeUrl);
     final uri = Uri.parse(decodeUrl);
     //download files by url
-    String filename;
-    double progress = 0.0;
+    final String filename =
+        uri.toString().substring(uri.toString().lastIndexOf("/") + 1);
     try {
-      //TODO 增加多线程下载的处理
-      final _client = http.Client();
-      final req = http.Request('get', uri);
-      final http.StreamedResponse r = await _client.send(req);
-      print(r.statusCode);
-      //设置下载相关参数
-      double curLen = 0.0;
-      final totalLen = r.contentLength;
-      final ds = <int>[1024 * 1024 * 3];
-      final cd = r.headers["Content-Disposition"];
-      if (cd != null) {
-        filename = cd.contains("filename") ? cd.split("=")[1] : "";
-      } else {
-        filename =
-            uri.toString().substring(uri.toString().lastIndexOf("/") + 1);
-      }
-      final file = File(config.downloadPath + path.separator + filename);
-      if (curLen == 0.0 && file.existsSync()) {
-        return Response.ok(
-            "file exists,file md5: ${md5.convert(file.readAsBytesSync()).toString()}");
-      }
-      //开始监听下载
-      print("begin download");
-      r.stream.listen((List<int> d) {
-        ds.addAll(d);
-        curLen += ds.length;
-        progress = curLen * 100 / totalLen;
-        file.writeAsBytesSync(ds, mode: FileMode.append, flush: true);
-        print("current progress: ${progress.toStringAsFixed(2)}%");
-        ds.clear();
-      }, onDone: () {
-        print("download file over!");
-        _client?.close();
+      print("start");
+      bool isStarted = false;
+      var startTime = DateTime.now();
+      final savePath = config.downloadPath + path.separator + filename;
+      final dio.Response res = await RangeDownload.downloadWithChunks(
+          url, savePath, onReceiveProgress: (received, total) {
+        if (!isStarted) {
+          startTime = DateTime.now();
+          isStarted = true;
+        }
+        if (total != -1) {
+          print("${(received / total * 100).floor()}%");
+        }
+        if ((received / total * 100).floor() >= 100) {
+          final duration = (DateTime.now().millisecondsSinceEpoch -
+                  startTime.millisecondsSinceEpoch) /
+              1000;
+          print("${duration}s");
+          print("${duration ~/ 60}m${duration % 60}s");
+        }
       });
+      print(res.statusCode);
+      print(res.statusMessage);
+      print(res.data);
     } catch (e) {
       print(e);
     }
